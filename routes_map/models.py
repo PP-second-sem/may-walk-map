@@ -1,5 +1,6 @@
 from django.db import models
-
+import gpxpy
+import json
 
 class Route(models.Model):
     # Основная информация
@@ -37,8 +38,49 @@ class Route(models.Model):
         ordering = ['-year', 'name']
 
     def save(self, *args, **kwargs):
-        # Упрощенная версия - просто отмечаем что файл есть
-        if self.gpx_file and not self.track_geojson:
-            self.track_geojson = "GPX_loaded_but_parsing_disabled"
-
+        # Сначала сохраняем чтобы файл был доступен
         super().save(*args, **kwargs)
+
+        # Затем парсим GPX если файл есть, а GeoJSON нет
+        if self.gpx_file and (not self.track_geojson or self.track_geojson == "GPX_loaded_but_parsing_disabled"):
+            try:
+                print(f"🔄 Парсим GPX файл: {self.gpx_file.path}")
+
+                with open(self.gpx_file.path, 'r', encoding='utf-8') as gpx_file:
+                    gpx_content = gpx_file.read()
+                    gpx = gpxpy.parse(gpx_content)
+
+                    geojson = {
+                        "type": "FeatureCollection",
+                        "features": []
+                    }
+
+                    for track in gpx.tracks:
+                        for segment in track.segments:
+                            coordinates = [[point.longitude, point.latitude] for point in segment.points]
+                            if coordinates:
+                                feature = {
+                                    "type": "Feature",
+                                    "geometry": {
+                                        "type": "LineString",
+                                        "coordinates": coordinates
+                                    },
+                                    "properties": {
+                                        "name": track.name or self.name,
+                                        "year": self.year,
+                                        "type": self.type
+                                    }
+                                }
+                                geojson['features'].append(feature)
+
+                    if geojson['features']:
+                        self.track_geojson = json.dumps(geojson)
+                        print(f"✅ Сгенерирован GeoJSON с {len(geojson['features'])} треками")
+
+                        # Сохраняем снова с GeoJSON
+                        super().save(update_fields=['track_geojson'])
+                    else:
+                        print("⚠️ В GPX файле нет треков с координатами")
+
+            except Exception as e:
+                print(f"❌ Ошибка парсинга GPX: {e}")
