@@ -6,7 +6,6 @@ const RemoveLeafletAttribution = () => {
   const map = useMap();
   
   useEffect(() => {
-    // Удаляем стандартную атрибуцию Leaflet
     const attributionElement = document.querySelector('.leaflet-control-attribution');
     if (attributionElement) {
       attributionElement.remove();
@@ -19,13 +18,20 @@ const RemoveLeafletAttribution = () => {
 const MapComponent = () => {
   return (
     <MapContainer
-      center={[56.8389, 60.6057]} // Координаты Екатеринбурга
+      center={[56.8389, 60.6057]}
       zoom={10}
-      style={{ height: '500px', width: '100%' }}
+      style={{ 
+        height: '100vh', 
+        width: '100vw',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: 1 
+      }}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="Карта Майской прогулки"
+        attribution=""
       />
       <RemoveLeafletAttribution />
     </MapContainer>

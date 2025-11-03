@@ -1,9 +1,17 @@
-.leaflet-container {
-  height: 500px;
-  width: 100%;
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Отключаем прокрутку */
+  height: 100%;
 }
 
-body {
-  margin: 0;
-  padding: 20px;
+#root {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.App {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
 }
