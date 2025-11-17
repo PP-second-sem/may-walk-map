@@ -1,0 +1,47 @@
+.route-card {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.route-card:hover {
+  background-color: #f5f5f5;
+}
+
+.route-card__info {
+  flex: 1;
+}
+
+.route-card__name {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.route-card__details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #666;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.route-card__type {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.route-card__type--foot {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.route-card__type--bike {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}

@@ -42,7 +42,7 @@
 }
 
 .routes-panel--open {
-    height: 879px;
+    height: 850px;
     display: flex;
     flex-direction: column;
 }
@@ -60,4 +60,32 @@
 
 .routes-panel:not(.routes-panel--open) .toolbar-icon {
     transform: translateY(-50%) rotate(180deg);
+}
+
+.routes-content {
+    flex: 1;
+    overflow-y: auto; /* Включаем прокрутку */
+    height: 0; /* Важно для flex-контейнера */
+    border-bottom-left-radius: 28px; /* 30px - 2px border */
+    border-bottom-right-radius: 28px;
+}
+
+.routes-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.routes-content::-webkit-scrollbar-track {
+    background: #f8f8f8;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.routes-content::-webkit-scrollbar-thumb {
+    background: rgba(219, 110, 75, 0.6);
+    border-radius: 4px;
+    border: 2px solid #f8f8f8;
+}
+
+.routes-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(219, 110, 75, 0.8);
 }
