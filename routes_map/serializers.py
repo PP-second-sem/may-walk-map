@@ -1,7 +1,15 @@
 from rest_framework import serializers
 from .models import Route
 
+
 class RouteSerializer(serializers.ModelSerializer):
+    map_image_url = serializers.SerializerMethodField()
+
+    def get_map_image_url(self, obj):
+        if obj.map_image:
+            return obj.map_image.url
+        return None
+
     class Meta:
         model = Route
-        fields = ('id', 'name', 'year', 'type', 'distance_km', 'start_location', 'track_geojson')
+        fields = ('id', 'name', 'year', 'type', 'distance_km', 'start_location', 'track_geojson', 'map_image_url')
