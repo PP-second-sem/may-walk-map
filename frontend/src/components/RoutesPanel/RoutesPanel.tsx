@@ -4,6 +4,7 @@ import toolbarIcon from '../../assets/toolbar-icon.svg';
 import RouteCard from "../RouteCard/RouteCard";
 import type { Route } from "../../types/map";
 import { apiService } from "../../services/api";
+import RouteDetailsPanel from "../RouteDetailsPanel/RouteDetailsPanel";
 
 
 const RoutesPanel = () => {
@@ -11,6 +12,15 @@ const RoutesPanel = () => {
     const [routes, setRoutes] = useState<Route[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
+
+    const handleRouteSelect = (route : Route) => {
+        setSelectedRoute(route);
+    };
+
+    const handleCloseDetails = () => {
+        setSelectedRoute(null);
+    };
 
     useEffect(() => {
         if (isOpen && routes.length === 0) {
@@ -34,38 +44,41 @@ const RoutesPanel = () => {
         }
     };
 
-    const handleRouteSelected = (route: Route) => {
-        console.log('Selected route:', route);
-    };
-
     return (
-        <div className={`routes-panel ${isOpen ? 'routes-panel--open' : ''}`}>
-            <div className="routes-header" onClick={() => setIsOpen(!isOpen)}>
-                <span className="routes-title">Маршруты</span>
-                <img 
-                    src={toolbarIcon}
-                    alt="Раскрытие маршрутов"
-                    className="toolbar-icon"
-                />
-            </div>
-
-            {isOpen && (
-            <div className="routes-content">
-                {loading && <p>Загрузка маршрутов...</p>}
-                {error && <p className="error">{error}</p>}
-                {!loading && !error && routes.map(route => (
-                    <RouteCard
-                        key={route.id}
-                        route={route}
-                        onSelect={handleRouteSelected}
+        <>
+            <div className={`routes-panel ${isOpen ? 'routes-panel--open' : ''}`}>
+                <div className="routes-header" onClick={() => setIsOpen(!isOpen)}>
+                    <span className="routes-title">Маршруты</span>
+                    <img 
+                        src={toolbarIcon}
+                        alt="Раскрытие маршрутов"
+                        className="toolbar-icon"
                     />
-                ))}
-                {!loading && !error && routes.length === 0 && (
-                    <p>Маршруты не найдены</p>
+                </div>
+
+                {isOpen && (
+                <div className="routes-content">
+                    {loading && <p>Загрузка маршрутов...</p>}
+                    {error && <p className="error">{error}</p>}
+                    {!loading && !error && routes.map(route => (
+                        <RouteCard
+                            key={route.id}
+                            route={route}
+                            onSelect={handleRouteSelect}
+                            isSelected={selectedRoute?.id === route.id}
+                        />
+                    ))}
+
+                    {!loading && !error && routes.length === 0 && (
+                        <p>Маршруты не найдены</p>
+                    )}
+                </div>
                 )}
             </div>
-            )}
-        </div>
+            {selectedRoute && (
+                <RouteDetailsPanel route={selectedRoute} onClose={handleCloseDetails} />
+            )} 
+        </>
     );
 };
 

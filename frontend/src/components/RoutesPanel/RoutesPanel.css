@@ -64,9 +64,10 @@
 
 .routes-content {
     flex: 1;
-    overflow-y: auto; /* Включаем прокрутку */
-    height: 0; /* Важно для flex-контейнера */
-    border-bottom-left-radius: 28px; /* 30px - 2px border */
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 0; 
+    border-bottom-left-radius: 28px;
     border-bottom-right-radius: 28px;
 }
 
