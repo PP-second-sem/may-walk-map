@@ -9,7 +9,7 @@ interface RouteDetailsPanelProps {
     onClose: () => void;
 }
 
-const RouteDetailsPanel = ({ route, onClose }: RouteDetailsPanelProps) => {
+const RouteDetailsPanel = ({ onClose }: RouteDetailsPanelProps) => {
     return (
         <div className="route-details-panel">
             <div className="route-details-header">
