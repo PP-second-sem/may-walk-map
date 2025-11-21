@@ -1,0 +1,60 @@
+.route-details-panel {
+    position: fixed;
+    top: 111px; /* Такая же позиция как у панели маршрутов */
+    left: 438px; /* 365px (ширина маршрутов) + 44px (margin-left маршрутов) + 29px (отступ) */
+    background-color: rgba(255, 255, 255, 1);
+    border: 2px solid rgba(219, 110, 75, 1);
+    border-radius: 25px;
+    width: 365px; /* Такая же ширина */
+    height: 887px; /* Такая же высота */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1001;
+}
+
+.route-details-image {
+    width: 332px;
+    height: 157px;
+    background: rgba(255, 232, 218, 1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(219, 110, 75, 1);
+    margin: 22px auto 0;
+}
+
+.route-details-image-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    position: relative;
+}
+
+.image-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 7px;
+}
+
+.action-button {
+    border: none;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-button:hover {
+    border-color: rgba(219, 110, 75, 1);
+}
+
+.action-button img {
+    height: 40px;
+    width: 40px;
+}

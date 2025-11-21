@@ -10,6 +10,12 @@ class Route(models.Model):
     # Мета-информация для фильтров
     YEAR_CHOICES = [(r, r) for r in range(1980, 2030)]
     year = models.IntegerField(choices=YEAR_CHOICES, verbose_name="Год проведения")
+    map_image = models.ImageField(
+        upload_to='route_maps/',
+        blank=True,
+        null=True,
+        verbose_name="Карта маршрута"
+    )
 
     TYPE_CHOICES = [
         ('foot', 'Пеший'),
