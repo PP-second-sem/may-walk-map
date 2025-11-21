@@ -17,7 +17,6 @@ const RouteDetailsPanel = ({ onClose }: RouteDetailsPanelProps) => {
             
             <div className="route-details-image-container">
                 <div className="route-details-image">
-                    {/* Заглушка для фото */}
                     <div className="image-placeholder">Фото маршрута</div>
                 </div>
 

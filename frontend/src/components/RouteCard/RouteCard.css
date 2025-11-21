@@ -17,7 +17,11 @@
   height: 135px; 
   border-radius: 15px;
   background: linear-gradient(135deg, #ffb199 0%, #ff0844 100%); /* Заглушка */
-  object-fit: cover; /* Чтобы фото растягивалось правильно */
+}
+
+.route-card__photo {
+  width: 140px;
+  height: 135px;
 }
 
 .route-card__content {

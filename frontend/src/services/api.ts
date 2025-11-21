@@ -8,6 +8,11 @@ export const apiService = {
         if (!response.ok) {
             throw new Error('Failed to fetch routes');
         }
-        return response.json();
+        const routes: Route[] = await response.json();
+        return routes;
     }
+};
+
+export const getRouteImageUrl = (map_image_url: string): string => {
+    return `${API_BASE}${map_image_url}`;
 };
