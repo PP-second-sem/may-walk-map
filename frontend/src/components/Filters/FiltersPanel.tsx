@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { MapFilters } from "../../types/map";
 import './FiltersPanel.css';
 import filterIcon from '../../assets/filter-icon.svg';
 import toolbarIcon from '../../assets/toolbar-icon.svg';
@@ -7,7 +8,11 @@ import chooseIcon from '../../assets/choose_icon.svg';
 import footIcon from '../../assets/foot_icon.svg';
 import bikeIcon from '../../assets/bike_icon.svg';
 
-const FiltersPanel = () => {
+interface FiltersPanelProps {
+  onFiltersChange: (filters: MapFilters) => void;
+}
+
+const FiltersPanel = ({ onFiltersChange: onFiltersChange } : FiltersPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isYearOpen, setIsYearOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string[]>(['2025']);
@@ -19,6 +24,15 @@ const FiltersPanel = () => {
     { id: 'bike', label: 'Вело', icon: bikeIcon },
   ]
 
+  useEffect(() => {
+        const newFilters: MapFilters = {
+            years: selectedYear.map(year => parseInt(year)),
+            types: selectedType,
+            minDistance: distanceRange[0],
+            maxDistance: distanceRange[1]
+        };
+        onFiltersChange(newFilters);
+    }, [selectedYear, selectedType, distanceRange, onFiltersChange])
 
   const toggleYear = (year: string) => {
     setSelectedYear(prev =>
