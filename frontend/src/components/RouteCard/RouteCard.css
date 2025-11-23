@@ -1,5 +1,5 @@
 .route-card {
-  width: 341px;
+  width: 371px;
   height: 135px;
   display: flex;
   border-radius: 15px;
@@ -12,16 +12,10 @@
   margin-bottom: 13px;
 }
 
-.route-card__image {
-  width: 140px;
-  height: 135px; 
-  border-radius: 15px;
-  background: linear-gradient(135deg, #ffb199 0%, #ff0844 100%); /* Заглушка */
-}
-
 .route-card__photo {
   width: 140px;
   height: 135px;
+  border-radius: 15px;
 }
 
 .route-card__content {

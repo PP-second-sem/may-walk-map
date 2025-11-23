@@ -1,4 +1,5 @@
 import type { Route } from '../../types/map';
+import { getRouteImageUrl } from '../../services/api';
 import './RouteDetailsPanel.css';
 import websiteIcon from '../../assets/export_button.svg';
 import downloadIcon from '../../assets/download_button.svg';
@@ -9,7 +10,7 @@ interface RouteDetailsPanelProps {
     onClose: () => void;
 }
 
-const RouteDetailsPanel = ({ onClose }: RouteDetailsPanelProps) => {
+const RouteDetailsPanel = ({ route, onClose }: RouteDetailsPanelProps) => {
     return (
         <div className="route-details-panel">
             <div className="route-details-header">
@@ -17,7 +18,11 @@ const RouteDetailsPanel = ({ onClose }: RouteDetailsPanelProps) => {
             
             <div className="route-details-image-container">
                 <div className="route-details-image">
-                    <div className="image-placeholder">Фото маршрута</div>
+                    <img 
+                    src={getRouteImageUrl(route.map_image_url)}
+                    alt={`Маршрут: ${route.name}`}
+                    className='route-details-image'
+                    />
                 </div>
 
                 <div className='image-actions'>
