@@ -1,11 +1,16 @@
 import MapComponent from './components/map/mapComponent';
+import Navigation from './components/Header/Navigation';
 import './App.css';
+
+import RoutesPanel from './components/RoutesPanel/RoutesPanel';
 
 function App() {
   return (
     <div className="App">
-      <h1>Карта маршрутов Майской прогулки</h1>
+      <Navigation />
+
       <MapComponent />
+      <RoutesPanel />
     </div>
   );
 }
