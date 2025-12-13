@@ -1,6 +1,6 @@
 import type { Route } from '../types/map';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'http://80.87.102.247';
 
 export const apiService = {
     async getRoutes(): Promise<Route[]> {

@@ -7,15 +7,20 @@ import { apiService } from "../../services/api";
 import RouteDetailsPanel from "../RouteDetailsPanel/RouteDetailsPanel";
 import FiltersPanel from "../Filters/FiltersPanel";
 
+interface RoutesPanelProps {
+  onRouteSelect?: (route: Route | null) => void;
+  onRoutesOnMapChange?: (routeIds: string[]) => void;
+  onRoutesLoaded?: (routes: Route[]) => void;
+}
 
-const RoutesPanel = () => {
+const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: RoutesPanelProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [routes, setRoutes] = useState<Route[]>([]);
     const [filteredRoutes, setFilteredRoutes] = useState<Route[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
-
+    const [routesOnMap, setRoutesOnMap] = useState<Set<string>>(new Set());
     const [filters, setFilters] = useState<MapFilters>({
         years: [2025],
         types: ['foot'],
@@ -23,12 +28,40 @@ const RoutesPanel = () => {
         maxDistance: 50
     });
 
+    const handleToggleMap = (route : Route) => {
+        setRoutesOnMap(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(route.id)) {
+                newSet.delete(route.id);
+            } 
+            else {
+                newSet.add(route.id);
+            }
+
+            if (onRoutesOnMapChange) {
+                onRoutesOnMapChange(Array.from(newSet));
+            }
+            return newSet;
+        });
+    };
+
     const handleFilterChange = useCallback((newFilters: MapFilters) => {
         setFilters(newFilters);
     }, []);
 
     const handleRouteSelect = (route : Route) => {
-        setSelectedRoute(route);
+        if (selectedRoute?.id === route.id) {
+            setSelectedRoute(null);
+            if (onRouteSelect) {
+                onRouteSelect(null);
+            }
+        } 
+        else {
+            setSelectedRoute(route);
+            if (onRouteSelect) {
+                onRouteSelect(route);
+            }
+        }
     };
 
     const handleCloseDetails = () => {
@@ -68,6 +101,10 @@ const RoutesPanel = () => {
         try {
             const routesData = await apiService.getRoutes();
             setRoutes(routesData);
+            setFilteredRoutes(routesData)
+            if (onRoutesLoaded) {
+                onRoutesLoaded(routesData);
+            }
         }
         catch (err) {
             setError('Не удалось загрузить маршруты');
@@ -101,6 +138,8 @@ const RoutesPanel = () => {
                             route={route}
                             onSelect={handleRouteSelect}
                             isSelected={selectedRoute?.id === route.id}
+                            onToggleMap={handleToggleMap}
+                            isOnMap={routesOnMap.has(route.id)}
                         />
                     ))}
 
