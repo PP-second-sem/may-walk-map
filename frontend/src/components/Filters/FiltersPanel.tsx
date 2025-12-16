@@ -15,8 +15,8 @@ interface FiltersPanelProps {
 const FiltersPanel = ({ onFiltersChange: onFiltersChange } : FiltersPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isYearOpen, setIsYearOpen] = useState(false);
-  const [selectedYear, setSelectedYear] = useState<string[]>(['2025']);
-  const [selectedType, setSelectedType] = useState<string[]>(['foot']);
+  const [selectedYear, setSelectedYear] = useState<string[]>(['']);
+  const [selectedType, setSelectedType] = useState<string[]>(['']);
   const [distanceRange, setDistanceRange] = useState([0, 50]);
   const years = ['2025', '2024', '2023', '2022'];
   const routeTypes = [
@@ -26,8 +26,8 @@ const FiltersPanel = ({ onFiltersChange: onFiltersChange } : FiltersPanelProps) 
 
   useEffect(() => {
         const newFilters: MapFilters = {
-            years: selectedYear.map(year => parseInt(year)),
-            types: selectedType,
+            years: [],
+            types: [],
             minDistance: distanceRange[0],
             maxDistance: distanceRange[1]
         };
