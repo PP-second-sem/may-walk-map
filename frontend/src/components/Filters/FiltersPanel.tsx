@@ -10,15 +10,15 @@ import bikeIcon from '../../assets/bike_icon.svg';
 
 interface FiltersPanelProps {
   onFiltersChange: (filters: MapFilters) => void;
+  availableYears?: number[];
 }
 
-const FiltersPanel = ({ onFiltersChange: onFiltersChange } : FiltersPanelProps) => {
+const FiltersPanel = ({ onFiltersChange: onFiltersChange, availableYears = [] } : FiltersPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isYearOpen, setIsYearOpen] = useState(false);
-  const [selectedYear, setSelectedYear] = useState<string[]>(['']);
-  const [selectedType, setSelectedType] = useState<string[]>(['']);
+  const [selectedYear, setSelectedYear] = useState<string[]>([]);
+  const [selectedType, setSelectedType] = useState<string[]>([]);
   const [distanceRange, setDistanceRange] = useState([0, 50]);
-  const years = ['2025', '2024', '2023', '2022'];
   const routeTypes = [
     { id: 'foot', label: 'Пеший', icon: footIcon },
     { id: 'bike', label: 'Вело', icon: bikeIcon },
@@ -26,8 +26,8 @@ const FiltersPanel = ({ onFiltersChange: onFiltersChange } : FiltersPanelProps) 
 
   useEffect(() => {
         const newFilters: MapFilters = {
-            years: [],
-            types: [],
+            years: selectedYear.map(year => parseInt(year)),
+            types: selectedType,
             minDistance: distanceRange[0],
             maxDistance: distanceRange[1]
         };
@@ -39,6 +39,10 @@ const FiltersPanel = ({ onFiltersChange: onFiltersChange } : FiltersPanelProps) 
       prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]
     );
   };
+
+  const years = availableYears
+    .map(y => y.toString())
+    .sort((a, b) => parseInt(b) - parseInt(a));
 
   const toggleType = (typeId: string) => {
     setSelectedType(prev => 

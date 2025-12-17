@@ -1,11 +1,11 @@
-import { MapContainer, TileLayer, Polyline, Popup, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
 import { useEffect } from 'react';
-import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { Route } from '../../types/map';
 import mapFinishIcon from '../../assets/finish-icon.svg';
 import footIcon from '../../assets/foot-start-icon.svg';
 import cycleIcon from '../../assets/cycle-start-icon.svg';
+import 'leaflet/dist/leaflet.css';
 
 interface MapComponentProps {
   selectedRoute: Route | null;
@@ -34,23 +34,59 @@ const finishIcon = L.icon({
   popupAnchor: [0, -32]
 });
 
-
-const RemoveLeafletAttribution = () => {
+const RouteArrows = ({ positions, color }: { 
+  positions: [number, number][]; 
+  color: string;
+}) => {
   const map = useMap();
   
   useEffect(() => {
-    const attributionElement = document.querySelector('.leaflet-control-attribution');
-    if (attributionElement) {
-      attributionElement.remove();
+    
+    if (!positions || positions.length < 2) return;
+    
+    const layer = L.layerGroup();
+    const EVERY_N_POINTS = 10;
+    
+    for (let i = EVERY_N_POINTS; i < positions.length - 1; i += EVERY_N_POINTS) {
+      const currentPoint = positions[i];
+      const nextPoint = positions[Math.min(i + 1, positions.length - 1)];
+      
+      const dx = nextPoint[1] - currentPoint[1];
+      const dy = currentPoint[0] - nextPoint[0];
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+      
+      const arrowIcon = L.divIcon({
+        html: `
+          <div style="
+            transform: rotate(${angle}deg);
+            width: 30px;
+            height: 30px;
+            color: red;
+            font-size: 24px;
+            text-align: center;
+            line-height: 30px;
+          ">➤</div>
+        `,
+        className: 'route-arrow',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+      
+      L.marker(currentPoint, { icon: arrowIcon, interactive: false, bubblingMouseEvents: false }).addTo(layer);
     }
-  }, [map]);
-
+    
+    layer.addTo(map);
+    
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [positions, color, map]);
+  
   return null;
 };
 
-const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) => {
-  
-  const parseGeoJSON = (geoJsonString: string) => {
+const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) => {  
+  const parseGeoJSON = (geoJsonString: string): [number, number][] => {
     try {
       const geoJson = JSON.parse(geoJsonString);
       if (geoJson.features && geoJson.features.length > 0) {
@@ -58,7 +94,7 @@ const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) =
         return coordinates.map((coord: number[]) => [coord[1], coord[0]]);
       }
     } catch (error) {
-      console.error('Ошибка парсинга GeoJSON:', error);
+      console.error('Ошибка парсинга:', error);
     }
     return [];
   };
@@ -83,10 +119,12 @@ const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) =
     return null;
   };
 
+  const routesWithArrows = routesOnMap;
+
   return (
     <MapContainer
       center={[56.8389, 60.6057]}
-      zoom={10}
+      zoom={12}
       style={{ 
         height: '100vh', 
         width: '100vw',
@@ -98,62 +136,56 @@ const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) =
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution=""
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       
       {allRoutes
         .filter(route => routesOnMap.includes(route.id))
         .map(route => {
+          const positions = parseGeoJSON(route.track_geojson);
+          const routeColor = route.type === 'foot' ? '#4835F2' : '#35F274';
           const points = getRouteStartEndPoints(route.track_geojson);
+          const hasArrows = routesWithArrows.includes(route.id);
+          
+          if (positions.length < 2) return null;
           
           return (
             <div key={`route-${route.id}`}>
               <Polyline
                 pathOptions={{
-                  color: route.type === 'foot' ? 'rgba(72, 53, 242, 1)' : 'rgba(53, 242, 116, 1)',
-                  weight: 8,
+                  color: routeColor,
+                  weight: 6,
                   opacity: 1.0
                 }}
-                positions={parseGeoJSON(route.track_geojson)}
-              >
-                <Popup>
-                  <div style={{ padding: '5px' }}>
-                    <h3 style={{ margin: '0 0 10px 0' }}>{route.name}</h3>
-                    <p><strong>Год:</strong> {route.year}</p>
-                    <p><strong>Дистанция:</strong> {route.distance_km} км</p>
-                  </div>
-                </Popup>
-              </Polyline>
-      
+                positions={positions}
+              />
+              
+              {hasArrows && positions.length > 10 && (
+                <RouteArrows 
+                  positions={positions}
+                  color={routeColor}
+                />
+              )}
+
               {points?.start && (
-                <Marker 
+                <Marker
                   position={points.start}
                   icon={route.type === 'foot' ? footStartIcon : cycleStartIcon}
-                >
-                  <Popup>
-                    <strong>Старт:</strong> {route.name}<br />
-                    {route.start_location}
-                  </Popup>
+                  >
                 </Marker>
               )}
-              
+
               {points?.finish && (
-                <Marker 
+                <Marker
                   position={points.finish}
-                  icon={finishIcon}
-                >
-                  <Popup>
-                    <strong>Финиш:</strong> {route.name}<br />
-                    Дистанция: {route.distance_km} км
-                  </Popup>
+                  icon={finishIcon}>
+
                 </Marker>
               )}
             </div>
           );
         })
       }
-      
-      <RemoveLeafletAttribution />
     </MapContainer>
   );
 };

@@ -19,7 +19,7 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
     const [filteredRoutes, setFilteredRoutes] = useState<Route[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
+    const [localSelectedRoute, setLocalSelectedRoute] = useState<Route | null>(null);
     const [routesOnMap, setRoutesOnMap] = useState<Set<string>>(new Set());
     const [filters, setFilters] = useState<MapFilters>({
         years: [2025],
@@ -27,8 +27,14 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
         minDistance: 0,
         maxDistance: 50
     });
+    const [availableYears, setAvailableYears] = useState<number[]>([]);
 
-    const handleToggleMap = (route : Route) => {
+    const extractUniqueYears = (routes: Route[]): number[] => {
+        const yearsSet = new Set(routes.map(route => route.year));
+        return Array.from(yearsSet).sort((a, b) => b - a); 
+    };
+
+    const handleToggleMap = (route: Route) => {
         setRoutesOnMap(prev => {
             const newSet = new Set(prev);
             if (newSet.has(route.id)) {
@@ -49,15 +55,16 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
         setFilters(newFilters);
     }, []);
 
-    const handleRouteSelect = (route : Route) => {
-        if (selectedRoute?.id === route.id) {
-            setSelectedRoute(null);
+    const handleRouteSelect = (route: Route) => {
+        if (localSelectedRoute?.id === route.id) {
+            setLocalSelectedRoute(null);
             if (onRouteSelect) {
                 onRouteSelect(null);
+                console.log('Отправляем null в App');
             }
         } 
         else {
-            setSelectedRoute(route);
+            setLocalSelectedRoute(route);
             if (onRouteSelect) {
                 onRouteSelect(route);
             }
@@ -65,7 +72,10 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
     };
 
     const handleCloseDetails = () => {
-        setSelectedRoute(null);
+        setLocalSelectedRoute(null);
+        if (onRouteSelect) {
+            onRouteSelect(null); 
+        }
     };
 
     useEffect(() => {
@@ -90,10 +100,10 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
     }, [routes, filters]);
 
     useEffect(() => {
-        if (isOpen && routes.length === 0) {
+        if (routes.length === 0) {
             loadRoutes();
         }
-    }, [isOpen]);
+    }, []);
 
     const loadRoutes = async () => {
         setLoading(true),
@@ -102,6 +112,8 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
             const routesData = await apiService.getRoutes();
             setRoutes(routesData);
             setFilteredRoutes(routesData)
+            const uniqueYears = extractUniqueYears(routesData);
+            setAvailableYears(uniqueYears);
             if (onRoutesLoaded) {
                 onRoutesLoaded(routesData);
             }
@@ -117,7 +129,10 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
 
     return (
         <>
-            <FiltersPanel onFiltersChange={handleFilterChange} />
+            <FiltersPanel 
+                onFiltersChange={handleFilterChange}
+                availableYears={availableYears}
+            />
             <div className={`routes-panel ${isOpen ? 'routes-panel--open' : ''}`}>
                 <div className="routes-header" onClick={() => setIsOpen(!isOpen)}>
                     <span className="routes-title">Маршруты</span>
@@ -137,7 +152,7 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
                             key={route.id}
                             route={route}
                             onSelect={handleRouteSelect}
-                            isSelected={selectedRoute?.id === route.id}
+                            isSelected={localSelectedRoute?.id === route.id}
                             onToggleMap={handleToggleMap}
                             isOnMap={routesOnMap.has(route.id)}
                         />
@@ -149,8 +164,8 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
                 </div>
                 )}
             </div>
-            {selectedRoute && (
-                <RouteDetailsPanel route={selectedRoute} onClose={handleCloseDetails} />
+            {localSelectedRoute && (
+                <RouteDetailsPanel route={localSelectedRoute} onClose={handleCloseDetails} />
             )} 
         </>
     );
