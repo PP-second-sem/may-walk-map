@@ -3,82 +3,69 @@ name: Full-Stack Deploy
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    
     steps:
+    # 1. Получаем код
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Deploy to production server
+    # 2. Собираем фронтенд в облаке (на мощностях GitHub)
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install and build frontend
+      working-directory: ./frontend
+      run: |
+        npm ci --legacy-peer-deps
+        npm run build
+        echo "✅ Frontend built in GitHub cloud"
+
+    # 3. Деплоим все на сервер
+    - name: Deploy to server
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          set -e  # Выйти при первой ошибке
-          echo "🚀 Starting full-stack deployment..."
+          echo "🚀 Starting deployment..."
           
-          # ========== 1. ОБНОВЛЕНИЕ КОДА ==========
+          # 1. Обновляем бэкенд
           cd /home/django/may-walk-map
-          git config --global --add safe.directory /home/django/may-walk-map
           git pull origin main
-          echo "✅ Code updated"
-          
-          # ========== 2. БЭКЕНД ==========
-          echo "🔧 Setting up backend..."
           source venv/bin/activate
-          pip install -r requirements.txt 2>/dev/null || pip install django djangorestframework gpxpy gunicorn pillow
+          pip install -r requirements.txt
           python manage.py migrate --noinput
           python manage.py collectstatic --noinput
           sudo systemctl restart gunicorn
-          echo "✅ Backend updated"
+          echo "✅ Backend deployed"
           
-          # ========== 3. ФРОНТЕНД ==========
-          echo "🎨 Building frontend..."
-          cd /home/django/may-walk-map/frontend
+          # 2. Копируем УЖЕ СОБРАННЫЙ фронтенд
+          echo "🎨 Copying pre-built frontend..."
           
-          # Установка Node.js если нужно
-          if ! command -v node &> /dev/null; then
-            echo "📦 Installing Node.js..."
-            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-            sudo apt-get install -y nodejs
-          fi
+          # Удаляем старые файлы
+          sudo rm -rf /var/www/may-walk/html/*
           
-          echo "Node: $(node --version)"
-          echo "npm: $(npm --version)"
+          # Создаем папку если нет
+          sudo mkdir -p /var/www/may-walk/html
           
-          # Установка зависимостей с флагом для обхода конфликтов
-          echo "📦 Installing dependencies..."
-          npm install --legacy-peer-deps --no-audit
+          # Копируем файлы из текущей папки (они придут из GitHub Actions)
+          # Важно: файлы фронтенда уже в папке frontend/dist/
+          sudo cp -r frontend/dist/* /var/www/may-walk/html/
           
-          # Сборка с увеличением памяти
-          echo "🏗️ Building React app..."
-          NODE_OPTIONS="--max-old-space-size=1024" npm run build
+          # Права
+          sudo chown -R www-data:www-data /var/www/may-walk/html
+          sudo chmod -R 755 /var/www/may-walk/html
           
-          # Проверка что сборка успешна
-          if [ -f "dist/index.html" ]; then
-            echo "✅ Frontend built successfully!"
-            echo "Dist size: $(du -sh dist)"
-          else
-            echo "❌ Frontend build failed!"
-            echo "Trying alternative build..."
-            npx vite build || echo "Build failed, continuing with old version"
-          fi
+          # 3. Перезагружаем nginx
+          sudo systemctl reload nginx
           
-          # ========== 4. NGINX ==========
-          echo "🌐 Restarting web server..."
-          sudo nginx -t
-          sudo systemctl restart nginx
-          
-          # ========== 5. ПРОВЕРКА ==========
           echo "✅ Deployment completed!"
-          echo "========================================"
           echo "🌍 Site: http://80.87.102.247/"
           echo "📊 API: http://80.87.102.247/map/api/routes/"
-          echo "⚙️ Admin: http://80.87.102.247/admin/"
-          echo "========================================"
