@@ -125,6 +125,7 @@ const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) =
     <MapContainer
       center={[56.8389, 60.6057]}
       zoom={12}
+      attributionControl={false}
       style={{ 
         height: '100vh', 
         width: '100vw',
@@ -136,7 +137,6 @@ const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) =
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       
       {allRoutes
