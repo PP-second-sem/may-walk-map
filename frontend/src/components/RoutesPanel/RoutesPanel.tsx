@@ -7,32 +7,75 @@ import { apiService } from "../../services/api";
 import RouteDetailsPanel from "../RouteDetailsPanel/RouteDetailsPanel";
 import FiltersPanel from "../Filters/FiltersPanel";
 
+interface RoutesPanelProps {
+  onRouteSelect?: (route: Route | null) => void;
+  onRoutesOnMapChange?: (routeIds: string[]) => void;
+  onRoutesLoaded?: (routes: Route[]) => void;
+}
 
-const RoutesPanel = () => {
+const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: RoutesPanelProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [routes, setRoutes] = useState<Route[]>([]);
     const [filteredRoutes, setFilteredRoutes] = useState<Route[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
-
+    const [localSelectedRoute, setLocalSelectedRoute] = useState<Route | null>(null);
+    const [routesOnMap, setRoutesOnMap] = useState<Set<string>>(new Set());
     const [filters, setFilters] = useState<MapFilters>({
         years: [2025],
         types: ['foot'],
         minDistance: 0,
         maxDistance: 50
     });
+    const [availableYears, setAvailableYears] = useState<number[]>([]);
+
+    const extractUniqueYears = (routes: Route[]): number[] => {
+        const yearsSet = new Set(routes.map(route => route.year));
+        return Array.from(yearsSet).sort((a, b) => b - a); 
+    };
+
+    const handleToggleMap = (route: Route) => {
+        setRoutesOnMap(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(route.id)) {
+                newSet.delete(route.id);
+            } 
+            else {
+                newSet.add(route.id);
+            }
+
+            if (onRoutesOnMapChange) {
+                onRoutesOnMapChange(Array.from(newSet));
+            }
+            return newSet;
+        });
+    };
 
     const handleFilterChange = useCallback((newFilters: MapFilters) => {
         setFilters(newFilters);
     }, []);
 
-    const handleRouteSelect = (route : Route) => {
-        setSelectedRoute(route);
+    const handleRouteSelect = (route: Route) => {
+        if (localSelectedRoute?.id === route.id) {
+            setLocalSelectedRoute(null);
+            if (onRouteSelect) {
+                onRouteSelect(null);
+                console.log('Отправляем null в App');
+            }
+        } 
+        else {
+            setLocalSelectedRoute(route);
+            if (onRouteSelect) {
+                onRouteSelect(route);
+            }
+        }
     };
 
     const handleCloseDetails = () => {
-        setSelectedRoute(null);
+        setLocalSelectedRoute(null);
+        if (onRouteSelect) {
+            onRouteSelect(null); 
+        }
     };
 
     useEffect(() => {
@@ -57,10 +100,10 @@ const RoutesPanel = () => {
     }, [routes, filters]);
 
     useEffect(() => {
-        if (isOpen && routes.length === 0) {
+        if (routes.length === 0) {
             loadRoutes();
         }
-    }, [isOpen]);
+    }, []);
 
     const loadRoutes = async () => {
         setLoading(true),
@@ -68,6 +111,12 @@ const RoutesPanel = () => {
         try {
             const routesData = await apiService.getRoutes();
             setRoutes(routesData);
+            setFilteredRoutes(routesData)
+            const uniqueYears = extractUniqueYears(routesData);
+            setAvailableYears(uniqueYears);
+            if (onRoutesLoaded) {
+                onRoutesLoaded(routesData);
+            }
         }
         catch (err) {
             setError('Не удалось загрузить маршруты');
@@ -80,7 +129,10 @@ const RoutesPanel = () => {
 
     return (
         <>
-            <FiltersPanel onFiltersChange={handleFilterChange} />
+            <FiltersPanel 
+                onFiltersChange={handleFilterChange}
+                availableYears={availableYears}
+            />
             <div className={`routes-panel ${isOpen ? 'routes-panel--open' : ''}`}>
                 <div className="routes-header" onClick={() => setIsOpen(!isOpen)}>
                     <span className="routes-title">Маршруты</span>
@@ -100,7 +152,9 @@ const RoutesPanel = () => {
                             key={route.id}
                             route={route}
                             onSelect={handleRouteSelect}
-                            isSelected={selectedRoute?.id === route.id}
+                            isSelected={localSelectedRoute?.id === route.id}
+                            onToggleMap={handleToggleMap}
+                            isOnMap={routesOnMap.has(route.id)}
                         />
                     ))}
 
@@ -110,8 +164,8 @@ const RoutesPanel = () => {
                 </div>
                 )}
             </div>
-            {selectedRoute && (
-                <RouteDetailsPanel route={selectedRoute} onClose={handleCloseDetails} />
+            {localSelectedRoute && (
+                <RouteDetailsPanel route={localSelectedRoute} onClose={handleCloseDetails} />
             )} 
         </>
     );
