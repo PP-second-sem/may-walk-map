@@ -1,7 +1,9 @@
-name: Deploy to Server
+name: Full-Stack Deploy
 
 on:
   push:
+    branches: [ main ]
+  pull_request:
     branches: [ main ]
 
 jobs:
@@ -18,12 +20,42 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
+          echo "🚀 Starting full-stack deployment..."
+          
+          # 1. ОБНОВЛЕНИЕ КОДА
           cd /home/django/may-walk-map
           git config --global --add safe.directory /home/django/may-walk-map
           git pull origin main
+          
+          # 2. БЭКЕНД
+          echo "🔧 Setting up backend..."
           source venv/bin/activate
           pip install -r requirements.txt
           python manage.py migrate
           python manage.py collectstatic --noinput
           sudo systemctl restart gunicorn
-          echo "🚀 Deployment completed successfully!"
+          
+          # 3. ФРОНТЕНД
+          echo "🎨 Building frontend..."
+          cd frontend
+          
+          # Проверяем есть ли node_modules
+          if [ ! -d "node_modules" ]; then
+            echo "📦 Installing Node.js dependencies..."
+            npm ci --only=production
+          else
+            echo "📦 Updating Node.js dependencies..."
+            npm install
+          fi
+          
+          # Сборка фронтенда
+          echo "🏗️ Building React app..."
+          npm run build
+          
+          # 4. NGINX
+          echo "🌐 Restarting web server..."
+          sudo systemctl restart nginx
+          
+          echo "✅ Deployment completed successfully!"
+          echo "🌍 Site: http://80.87.102.247/"
+          echo "📊 API: http://80.87.102.247/map/api/routes/"
