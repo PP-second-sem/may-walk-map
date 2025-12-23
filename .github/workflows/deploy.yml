@@ -1,29 +1,71 @@
-name: Deploy to Server
+name: Full-Stack Deploy
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    
     steps:
+    # 1. Получаем код
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Deploy to production server
+    # 2. Собираем фронтенд в облаке (на мощностях GitHub)
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install and build frontend
+      working-directory: ./frontend
+      run: |
+        npm ci --legacy-peer-deps
+        npm run build
+        echo "✅ Frontend built in GitHub cloud"
+
+    # 3. Деплоим все на сервер
+    - name: Deploy to server
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
+          echo "🚀 Starting deployment..."
+          
+          # 1. Обновляем бэкенд
           cd /home/django/may-walk-map
-          git config --global --add safe.directory /home/django/may-walk-map
           git pull origin main
           source venv/bin/activate
           pip install -r requirements.txt
-          python manage.py migrate
+          python manage.py migrate --noinput
           python manage.py collectstatic --noinput
           sudo systemctl restart gunicorn
-          echo "🚀 Deployment completed successfully!"
+          echo "✅ Backend deployed"
+          
+          # 2. Копируем УЖЕ СОБРАННЫЙ фронтенд
+          echo "🎨 Copying pre-built frontend..."
+          
+          # Удаляем старые файлы
+          sudo rm -rf /var/www/may-walk/html/*
+          
+          # Создаем папку если нет
+          sudo mkdir -p /var/www/may-walk/html
+          
+          # Копируем файлы из текущей папки (они придут из GitHub Actions)
+          # Важно: файлы фронтенда уже в папке frontend/dist/
+          sudo cp -r frontend/dist/* /var/www/may-walk/html/
+          
+          # Права
+          sudo chown -R www-data:www-data /var/www/may-walk/html
+          sudo chmod -R 755 /var/www/may-walk/html
+          
+          # 3. Перезагружаем nginx
+          sudo systemctl reload nginx
+          
+          echo "✅ Deployment completed!"
+          echo "🌍 Site: http://80.87.102.247/"
+          echo "📊 API: http://80.87.102.247/map/api/routes/"
