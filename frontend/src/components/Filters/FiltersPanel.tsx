@@ -47,7 +47,7 @@ const FiltersPanel = ({ onFiltersChange: onFiltersChange, availableYears = [] } 
   const toggleType = (typeId: string) => {
     setSelectedType(prev => 
       prev.includes(typeId) ? prev.filter(t => t !== typeId) : [...prev, typeId]
-    );
+    )
   };
 
   const handleMinChange = (minValue: number) => {
