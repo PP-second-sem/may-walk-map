@@ -3,11 +3,26 @@ import gpxpy
 import json
 
 class Route(models.Model):
-    # Основная информация
     name = models.CharField(max_length=255, verbose_name="Название маршрута")
     gpx_file = models.FileField(upload_to='gpx_files/', verbose_name="GPX-файл")
 
-    # Мета-информация для фильтров
+    line_width = models.IntegerField(
+        default=3,
+        verbose_name="Толщина линии",
+        help_text="Толщина линии на карте (1-10 пикселей)"
+    )
+    line_color = models.CharField(
+        max_length=7,
+        default='#3388ff',
+        verbose_name="Цвет линии",
+        help_text="HEX цвет, например #ff0000 для красного"
+    )
+    line_opacity = models.FloatField(
+        default=0.7,
+        verbose_name="Прозрачность линии",
+        help_text="От 0.0 (полностью прозрачно) до 1.0 (непрозрачно)"
+    )
+
     YEAR_CHOICES = [(r, r) for r in range(1980, 2030)]
     year = models.IntegerField(choices=YEAR_CHOICES, verbose_name="Год проведения")
     map_image = models.ImageField(
@@ -16,21 +31,15 @@ class Route(models.Model):
         null=True,
         verbose_name="Карта маршрута"
     )
-
     TYPE_CHOICES = [
         ('foot', 'Пеший'),
         ('bike', 'Велосипедный'),
     ]
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='foot', verbose_name="Тип маршрута")
-
     distance_km = models.FloatField(verbose_name="Протяженность (км)")
     start_location = models.CharField(max_length=255, blank=True, verbose_name="Место старта")
     description = models.TextField(blank=True, verbose_name="Описание")
-
-    # Это поле будет заполняться автоматически при загрузке GPX
     track_geojson = models.TextField(blank=True, null=True, verbose_name="Трек в формате GeoJSON")
-
-    # Служебные поля
     is_active = models.BooleanField(default=True, verbose_name="Активный маршрут")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

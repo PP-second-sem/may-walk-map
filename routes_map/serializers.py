@@ -12,4 +12,4 @@ class RouteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Route
-        fields = ('id', 'name', 'year', 'type', 'distance_km', 'start_location', 'track_geojson', 'map_image_url')
+        fields = '__all__'

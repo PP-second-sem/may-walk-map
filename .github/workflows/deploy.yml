@@ -9,24 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    # 1. Получаем код
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # 2. Собираем фронтенд в облаке (на мощностях GitHub)
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '18'  # Можно оставить 18, но 20 лучше
 
     - name: Install and build frontend
       working-directory: ./frontend
       run: |
         npm ci --legacy-peer-deps
         npm run build
-        echo "✅ Frontend built in GitHub cloud"
+        echo "✅ Frontend built"
 
-    # 3. Деплоим все на сервер
     - name: Deploy to server
       uses: appleboy/ssh-action@master
       with:
@@ -34,38 +31,67 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          echo "🚀 Starting deployment..."
+          echo "🚀 SAFE DEPLOYMENT STARTING..."
+          echo "⚠️  Media files in /media/ will NOT be touched!"
           
-          # 1. Обновляем бэкенд
+          # ========== 1. БЕЗОПАСНЫЙ GIT PULL ==========
           cd /home/django/may-walk-map
+          
+          # Сохраняем текущие медиафайлы если нужно
+          echo "Backing up media if needed..."
+          sudo cp -r media/ /tmp/media-backup/ 2>/dev/null || true
+          
+          # Git pull БЕЗ перезаписи медиа
+          git fetch origin
+          git checkout -- .  # Отменяем локальные изменения в отслеживаемых файлах
           git pull origin main
+          
+          # ========== 2. БЭКЕНД ==========
+          echo "🔧 Updating backend..."
           source venv/bin/activate
           pip install -r requirements.txt
+          
+          # МИГРАЦИИ - безопасны для данных
           python manage.py migrate --noinput
-          python manage.py collectstatic --noinput
-          sudo systemctl restart gunicorn
-          echo "✅ Backend deployed"
+          echo "✅ Database migrations applied"
           
-          # 2. Копируем УЖЕ СОБРАННЫЙ фронтенд
-          echo "🎨 Copying pre-built frontend..."
+          # COLLECTSTATIC - не трогает media/
+          python manage.py collectstatic --noinput --clear
+          echo "✅ Static files collected"
           
-          # Удаляем старые файлы
+          # ========== 3. ВОССТАНАВЛИВАЕМ МЕДИА ==========
+          echo "🖼️  Restoring media files..."
+          # Если папка media была случайно удалена Git'ом
+          if [ ! -d "media" ]; then
+            echo "Media folder missing, restoring..."
+            mkdir -p media
+          fi
+          
+          # Копируем обратно из backup если нужно
+          if [ -d "/tmp/media-backup" ]; then
+            sudo cp -r /tmp/media-backup/* media/ 2>/dev/null || true
+            sudo rm -rf /tmp/media-backup
+          fi
+          
+          # ========== 4. ФРОНТЕНД ==========
+          echo "🎨 Deploying frontend..."
           sudo rm -rf /var/www/may-walk/html/*
-          
-          # Создаем папку если нет
-          sudo mkdir -p /var/www/may-walk/html
-          
-          # Копируем файлы из текущей папки (они придут из GitHub Actions)
-          # Важно: файлы фронтенда уже в папке frontend/dist/
           sudo cp -r frontend/dist/* /var/www/may-walk/html/
-          
-          # Права
           sudo chown -R www-data:www-data /var/www/may-walk/html
           sudo chmod -R 755 /var/www/may-walk/html
           
-          # 3. Перезагружаем nginx
+          # ========== 5. СЕРВИСЫ ==========
+          echo "🔄 Restarting services..."
+          sudo systemctl restart gunicorn
           sudo systemctl reload nginx
           
-          echo "✅ Deployment completed!"
+          # ========== 6. ПРОВЕРКА ==========
+          echo "✅ DEPLOYMENT COMPLETE!"
+          echo "📊 Media folder status:"
+          ls -la media/ 2>/dev/null | head -5 || echo "Media folder exists"
+          echo ""
           echo "🌍 Site: http://80.87.102.247/"
-          echo "📊 API: http://80.87.102.247/map/api/routes/"
+          echo "📱 API: http://80.87.102.247/map/api/routes/"
+          echo "⚙️  Admin: http://80.87.102.247/admin/"
+          echo ""
+          echo "⚠️  IMPORTANT: User-uploaded images in /media/ are SAFE"

@@ -1,5 +1,17 @@
-venv/ 
-__pycache__/ 
-*.pyc 
-db.sqlite3 
-.idea/ 
+# Django
+media/           
+*.sqlite3
+__pycache__/
+*.pyc
+.env
+*.log
+
+# Frontend
+frontend/dist/
+frontend/node_modules/
+*.tar.gz
+*.zip
+
+# IDE
+.idea/
+.vscode/
