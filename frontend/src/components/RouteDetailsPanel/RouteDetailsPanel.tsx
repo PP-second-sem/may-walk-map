@@ -24,6 +24,10 @@ const RouteDetailsPanel = ({ route, onClose }: RouteDetailsPanelProps) => {
                     className='route-details-image'
                     />
                 </div>
+                <div className='route-details-text'>
+                    <h2 className='route-details-title'>{route.name}</h2>
+                    <p className='route-details-description'>{route.description}</p>
+                </div>
 
                 <div className='image-actions'>
                     <button className='action-button'>
