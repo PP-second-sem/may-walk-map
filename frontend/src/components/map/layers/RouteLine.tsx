@@ -1,5 +1,6 @@
 import { Polyline } from 'react-leaflet';
 
+
 interface RouteLineProps {
   positions: [number, number][];
   color: string;
@@ -10,8 +11,8 @@ interface RouteLineProps {
 export const RouteLine = ({ 
   positions, 
   color, 
-  weight = 6, 
-  opacity = 1.0 
+  weight, 
+  opacity 
 }: RouteLineProps) => {
   return (
     <Polyline

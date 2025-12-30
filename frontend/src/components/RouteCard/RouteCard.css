@@ -23,7 +23,7 @@
 
 .route-card__content {
   flex: 1;
-  padding: 20px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

@@ -42,7 +42,7 @@ const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) =
         
         return (
           <div key={`route-${route.id}`}>
-            <RouteLine weight={6} opacity={1} positions={positions} color={color} />
+            <RouteLine weight={route.line_width} opacity={route.line_opacity} positions={positions} color={route.line_color} />
             
             {shouldShowArrows && (
               <RouteArrows positions={positions} color={color} />

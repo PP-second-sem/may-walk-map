@@ -2,6 +2,10 @@ export interface Route {
   id: string;
   name: string;
   year: number;
+  line_color: string;
+  line_width: number;
+  line_opacity: number;
+  description: string;
   type: 'foot' | 'bike';
   distance_km: number;
   start_location: string;
