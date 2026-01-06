@@ -11,14 +11,22 @@ import bikeIcon from '../../assets/bike_icon.svg';
 interface FiltersPanelProps {
   onFiltersChange: (filters: MapFilters) => void;
   availableYears?: number[];
+  onToggle?: (isOpen: boolean) => void;
 }
 
-const FiltersPanel = ({ onFiltersChange: onFiltersChange, availableYears = [] } : FiltersPanelProps) => {
+const FiltersPanel = ({ onFiltersChange: onFiltersChange, availableYears = [], onToggle } : FiltersPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isYearOpen, setIsYearOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string[]>([]);
   const [selectedType, setSelectedType] = useState<string[]>([]);
   const [distanceRange, setDistanceRange] = useState([0, 50]);
+
+  const handleToggle = () => {
+    const newIsOpen = !isOpen;
+    setIsOpen(newIsOpen);
+    onToggle?.(newIsOpen);
+  };
+
   const routeTypes = [
     { id: 'foot', label: 'Пеший', icon: footIcon },
     { id: 'bike', label: 'Вело', icon: bikeIcon },
@@ -62,7 +70,7 @@ const FiltersPanel = ({ onFiltersChange: onFiltersChange, availableYears = [] } 
 
   return (
     <div className={`filters-panel ${isOpen ? 'filters-panel--open' : ''}`}>
-      <div className="filters-header" onClick={() => setIsOpen(!isOpen)}>
+      <div className="filters-header" onClick={handleToggle}>
         <span className="filters-title">Фильтры</span>
         <img 
           src={filterIcon} 

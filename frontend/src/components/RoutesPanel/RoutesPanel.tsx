@@ -11,9 +11,10 @@ interface RoutesPanelProps {
   onRouteSelect?: (route: Route | null) => void;
   onRoutesOnMapChange?: (routeIds: string[]) => void;
   onRoutesLoaded?: (routes: Route[]) => void;
+  onToggle: (isOpen: boolean) => void;
 }
 
-const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: RoutesPanelProps) => {
+const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded, onToggle }: RoutesPanelProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [routes, setRoutes] = useState<Route[]>([]);
     const [filteredRoutes, setFilteredRoutes] = useState<Route[]>([]);
@@ -55,12 +56,17 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
         setFilters(newFilters);
     }, []);
 
+    const handleToggle = () => {
+        const newIsOpen = !isOpen;
+        setIsOpen(newIsOpen); 
+        onToggle?.(newIsOpen);
+    };
+
     const handleRouteSelect = (route: Route) => {
         if (localSelectedRoute?.id === route.id) {
             setLocalSelectedRoute(null);
             if (onRouteSelect) {
                 onRouteSelect(null);
-                console.log('Отправляем null в App');
             }
         } 
         else {
@@ -132,9 +138,10 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded }: Rou
             <FiltersPanel 
                 onFiltersChange={handleFilterChange}
                 availableYears={availableYears}
+                onToggle={onToggle}
             />
             <div className={`routes-panel ${isOpen ? 'routes-panel--open' : ''}`}>
-                <div className="routes-header" onClick={() => setIsOpen(!isOpen)}>
+                <div className="routes-header" onClick={handleToggle}>
                     <span className="routes-title">Маршруты</span>
                     <img 
                         src={toolbarIcon}
