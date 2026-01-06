@@ -11,12 +11,29 @@ interface MapComponentProps {
   selectedRoute: Route | null;
   routesOnMap?: string[];
   allRoutes?: Route[];
+  mapType?: 'openstreet' | 'yandex' | '2gis';
 }
 
-const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) => {
+const MapComponent = ({ 
+  routesOnMap = [], 
+  allRoutes = [], 
+  mapType = 'openstreet'
+}: MapComponentProps) => {
   const routesToDisplay = allRoutes.filter(route => routesOnMap.includes(route.id));
   const routesData = useRouteData(routesToDisplay);
   
+  const getTileUrl = () => {
+    switch(mapType) {
+      case 'yandex':
+        return 'https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&scale=1&lang=ru_RU';
+      case '2gis':
+        return 'https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}';
+      case 'openstreet':
+      default:
+        return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    }
+  };
+
   return (
     <MapContainer
       center={MAP_CENTER}
@@ -31,9 +48,7 @@ const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) =
         zIndex: 1 
       }}
     >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <TileLayer url={getTileUrl()} />
       
       {routesData.map(({ route, positions, startPoint, finishPoint, color, isValid }) => {
         if (!isValid) return null;
@@ -42,7 +57,12 @@ const MapComponent = ({ routesOnMap = [], allRoutes = [] }: MapComponentProps) =
         
         return (
           <div key={`route-${route.id}`}>
-            <RouteLine weight={route.line_width} opacity={route.line_opacity} positions={positions} color={route.line_color} />
+            <RouteLine 
+              weight={route.line_width} 
+              opacity={route.line_opacity} 
+              positions={positions} 
+              color={route.line_color} 
+            />
             
             {shouldShowArrows && (
               <RouteArrows positions={positions} color={color} />
