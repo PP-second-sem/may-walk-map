@@ -11,6 +11,7 @@ export interface Route {
   start_location: string;
   track_geojson: string;
   map_image_url: string;
+  gpx_file: string;
 }
 
 export interface MapFilters {
