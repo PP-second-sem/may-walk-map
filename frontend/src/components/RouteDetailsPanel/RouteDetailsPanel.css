@@ -6,11 +6,12 @@
     border: 2px solid rgba(219, 110, 75, 1);
     border-radius: 25px;
     width: 365px;
-    height: 887px;
+    height: 850px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     z-index: 1001;
+    max-height: 85vh;
 }
 
 .route-details-image {
