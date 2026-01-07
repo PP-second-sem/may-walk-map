@@ -18,12 +18,15 @@ function App() {
     setAllRoutes(routes);
   };
 
-  const handleFiltersToggle = (open: boolean) => {
-    setIsFiltersOpen(open);
+  const handleRoutesToggle = (isOpen: boolean) => {
+    setIsRoutesOpen(isOpen);
+    if (!isOpen) {
+      setSelectedRoute(null);
+    }
   };
 
-  const handleRoutesToggle = (open: boolean) => {
-    setIsRoutesOpen(open);
+  const handleFiltersToggle = (isOpen: boolean) => {
+    setIsFiltersOpen(isOpen);
   };
 
   return (
@@ -39,7 +42,7 @@ function App() {
         onRouteSelect={setSelectedRoute}
         onRoutesOnMapChange={setRoutesOnMap}
         onRoutesLoaded={handleRoutesLoaded}
-        onRoutesToggle={handleRoutesToggle}
+        onRoutesToggle={handleRoutesToggle} // Два отдельных обработчика
         onFiltersToggle={handleFiltersToggle}
       />
       <MapSwitcherButton 
@@ -50,4 +53,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

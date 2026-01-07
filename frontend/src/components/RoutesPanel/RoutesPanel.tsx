@@ -61,6 +61,12 @@ const RoutesPanel = ({ onRouteSelect, onRoutesOnMapChange, onRoutesLoaded, onFil
         const newIsOpen = !isOpen;
         setIsOpen(newIsOpen); 
         onRoutesToggle?.(newIsOpen);
+        if (!newIsOpen && localSelectedRoute) {
+            setLocalSelectedRoute(null);
+            if (onRouteSelect) {
+                onRouteSelect(null);
+            }
+        }
     };
 
     const handleRouteSelect = (route: Route) => {
