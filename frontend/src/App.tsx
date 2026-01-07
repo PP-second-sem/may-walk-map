@@ -42,13 +42,14 @@ function App() {
         onRouteSelect={setSelectedRoute}
         onRoutesOnMapChange={setRoutesOnMap}
         onRoutesLoaded={handleRoutesLoaded}
-        onRoutesToggle={handleRoutesToggle} // Два отдельных обработчика
+        onRoutesToggle={handleRoutesToggle} 
         onFiltersToggle={handleFiltersToggle}
       />
       <MapSwitcherButton 
         currentMap={mapType}
         onMapChange={setMapType}
-        isFiltersOpen={isFiltersOpen} />
+        isFiltersOpen={isFiltersOpen}
+        isRoutesOpen={isRoutesOpen} />
     </div>
   );
 }
