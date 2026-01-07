@@ -12,9 +12,18 @@ function App() {
   const [allRoutes, setAllRoutes] = useState<Route[]>([]);
   const [mapType, setMapType] = useState<'openstreet' | 'yandex' | '2gis'>('openstreet');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isRoutesOpen, setIsRoutesOpen] = useState(false);
 
   const handleRoutesLoaded = (routes: Route[]) => {
     setAllRoutes(routes);
+  };
+
+  const handleFiltersToggle = (open: boolean) => {
+    setIsFiltersOpen(open);
+  };
+
+  const handleRoutesToggle = (open: boolean) => {
+    setIsRoutesOpen(open);
   };
 
   return (
@@ -30,7 +39,8 @@ function App() {
         onRouteSelect={setSelectedRoute}
         onRoutesOnMapChange={setRoutesOnMap}
         onRoutesLoaded={handleRoutesLoaded}
-        onToggle={setIsFiltersOpen}
+        onRoutesToggle={handleRoutesToggle}
+        onFiltersToggle={handleFiltersToggle}
       />
       <MapSwitcherButton 
         currentMap={mapType}
