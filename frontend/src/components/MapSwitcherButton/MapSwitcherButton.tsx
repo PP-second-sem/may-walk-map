@@ -8,9 +8,10 @@ interface MapSwitcherButtonProps {
   currentMap: MapType;
   onMapChange: (mapType: MapType) => void;
   isFiltersOpen: boolean;
+  isRoutesOpen: boolean;
 }
 
-export const MapSwitcherButton = ({ currentMap, onMapChange, isFiltersOpen = false }: MapSwitcherButtonProps) => {
+export const MapSwitcherButton = ({ currentMap, onMapChange, isFiltersOpen = false, isRoutesOpen = false }: MapSwitcherButtonProps) => {
   const maps = [
     { 
       id: 'openstreet' as const, 
@@ -29,7 +30,7 @@ export const MapSwitcherButton = ({ currentMap, onMapChange, isFiltersOpen = fal
   return (
     <div className="map-type-buttons"
         style={{
-            right: isFiltersOpen ? '400px' : '10px'
+            right: isRoutesOpen && isFiltersOpen ? '400px' : '10px'
         }}>
       {maps.map((map) => (
         <button
